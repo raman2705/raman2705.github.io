@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARC-Net Coordination Layer · Case Study 02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F7F4EE;
+    --bg-raised: #FCFAF6;
+    --ink: #211C19;
+    --ink-soft: #58504A;
+    --rule: #DED5C6;
+    --rule-strong: #C9BCA8;
+    --terracotta: #9C5049;
+    --terracotta-soft: #E7D3CF;
+    --sage: #4F5C46;
+    --sage-soft: #DCE2D4;
+    --mono-label: #7A6F63;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--terracotta-soft); }
+  a{ color:var(--terracotta); }
+
+  .progress{
+    position:fixed;
+    top:0; left:0;
+    height:3px;
+    width:0%;
+    background:var(--terracotta);
+    z-index:100;
+    transition:width .08s linear;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:220px minmax(0,720px);
+    gap:64px;
+    padding:0 32px;
+  }
+
+  .hero{
+    max-width:1180px;
+    margin:0 auto;
+    padding:88px 32px 56px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--terracotta);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:1px;
+    background:var(--terracotta);
+    display:inline-block;
+  }
+  h1.title{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:clamp(40px, 6vw, 64px);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+    margin:0 0 20px;
+    max-width:820px;
+  }
+  h1.title em{
+    font-style:italic;
+    color:var(--terracotta);
+  }
+  .subtitle{
+    font-size:19px;
+    color:var(--ink-soft);
+    max-width:600px;
+    margin:0 0 28px;
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:28px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--mono-label);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    border-top:1px solid var(--rule);
+    padding-top:22px;
+    margin-top:36px;
+  }
+  .meta-row span b{
+    display:block;
+    color:var(--ink);
+    text-transform:none;
+    font-family:'Source Sans 3', sans-serif;
+    font-size:14px;
+    letter-spacing:0;
+    margin-top:4px;
+  }
+
+  .nav-col{
+    position:sticky;
+    top:48px;
+    align-self:start;
+    padding-top:4px;
+    display:none;
+  }
+  .nav-col .nav-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:16px;
+  }
+  .nav-col ol{
+    list-style:none;
+    margin:0; padding:0;
+    border-left:1px solid var(--rule);
+  }
+  .nav-col li{ margin:0; }
+  .nav-col a{
+    display:block;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:9px 0 9px 18px;
+    border-left:1px solid transparent;
+    margin-left:-1px;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .nav-col a:hover{ color:var(--ink); }
+  .nav-col a.active{
+    color:var(--terracotta);
+    border-left:1px solid var(--terracotta);
+    font-weight:500;
+  }
+  .nav-col .n{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--mono-label);
+    margin-right:8px;
+  }
+
+  main{ min-width:0; padding-bottom:60px; }
+
+  section.block{
+    padding:52px 0;
+    border-bottom:1px solid var(--rule);
+    scroll-margin-top:40px;
+  }
+  section.block:last-of-type{ border-bottom:none; }
+
+  .block-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:12px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .block-label .num{ color:var(--terracotta); }
+
+  h2{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:32px;
+    margin:0 0 22px;
+    letter-spacing:-0.01em;
+  }
+  h3{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:21px;
+    margin:32px 0 14px;
+    color:var(--terracotta);
+  }
+
+  p{ margin:0 0 18px; color:var(--ink); }
+  .lede{ font-size:18.5px; color:var(--ink-soft); }
+
+  .callout{
+    background:var(--bg-raised);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--sage);
+    border-radius:2px;
+    padding:22px 26px;
+    margin:26px 0;
+  }
+  .callout .callout-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--sage);
+    margin-bottom:10px;
+    display:block;
+  }
+  .callout p:last-child{ margin-bottom:0; }
+
+  .boundary-note{
+    border:1px dashed var(--rule-strong);
+    padding:20px 24px;
+    margin:26px 0;
+    background:transparent;
+    font-size:15.5px;
+    color:var(--ink-soft);
+  }
+  .boundary-note .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:10px;
+  }
+
+  .system-map{
+    margin:34px 0;
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    background:var(--bg-raised);
+    padding:28px;
+    overflow-x:auto;
+  }
+  .map-legend{
+    display:flex;
+    gap:24px;
+    margin-bottom:24px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--mono-label);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .legend-dot{
+    width:10px; height:10px;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:6px;
+    vertical-align:middle;
+  }
+  .legend-dot.built{ background:var(--terracotta); }
+  .legend-dot.platform{ background:var(--rule-strong); }
+
+  .map-module{ margin-bottom:16px; }
+  .map-module:last-child{ margin-bottom:0; }
+  .module-header{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:8px;
+  }
+  .module-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .workflow-chip{
+    font-size:13.5px;
+    padding:7px 14px;
+    border-radius:2px;
+    font-family:'Source Sans 3', sans-serif;
+    border:1px solid var(--rule-strong);
+  }
+  .workflow-chip.built{
+    background:var(--terracotta-soft);
+    border-color:var(--terracotta);
+    color:var(--terracotta);
+    font-weight:600;
+  }
+  .workflow-chip.platform{
+    background:var(--bg);
+    color:var(--ink-soft);
+  }
+  .module-divider{
+    border:none;
+    border-top:1px solid var(--rule);
+    margin:14px 0;
+  }
+
+  .decision-entry{
+    border:1px solid var(--rule);
+    background:var(--bg-raised);
+    border-radius:2px;
+    padding:24px 26px;
+    margin-bottom:18px;
+  }
+  .decision-entry:last-child{ margin-bottom:0; }
+  .decision-fork{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:14px;
+  }
+  .decision-compare{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+    margin-bottom:14px;
+    font-size:15.5px;
+  }
+  .decision-compare .rejected{
+    color:var(--ink-soft);
+    text-decoration:line-through;
+    text-decoration-color:var(--rule-strong);
+  }
+  .decision-compare .arrow{
+    color:var(--mono-label);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .decision-compare .chosen{
+    color:var(--terracotta);
+    font-weight:600;
+  }
+  .decision-rationale{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  .gpt-card{
+    border:1px solid var(--rule);
+    background:var(--bg-raised);
+    border-left:3px solid var(--terracotta);
+    border-radius:2px;
+    padding:22px 26px;
+    margin-bottom:14px;
+  }
+  .gpt-card:last-child{ margin-bottom:0; }
+  .gpt-title{
+    font-weight:600;
+    margin-bottom:6px;
+    font-size:16px;
+  }
+  .gpt-module-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:10px;
+    display:block;
+  }
+  .gpt-behavior{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:10px 0 0;
+    padding:10px 14px;
+    border-left:2px solid var(--rule-strong);
+    font-style:italic;
+  }
+  .gpt-card p{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  .case-nav{
+    position:sticky;
+    top:0;
+    z-index:101;
+    background:var(--bg);
+    border-bottom:1px solid var(--rule);
+  }
+  .case-nav .case-nav-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+    height:56px;
+    display:flex;
+    align-items:center;
+    gap:32px;
+  }
+  .case-nav a{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    text-decoration:none;
+    transition:color .15s ease;
+  }
+  .case-nav a:hover{ color:var(--terracotta); }
+
+  footer{
+    max-width:1180px;
+    margin:0 auto;
+    padding:40px 32px 80px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--mono-label);
+    letter-spacing:.04em;
+    border-top:1px solid var(--rule);
+  }
+
+  .reveal{
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .reveal.revealed{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  @media (min-width: 920px){ .nav-col{ display:block; } }
+  @media (max-width: 919px){ .wrap{ grid-template-columns:1fr; } }
+  @media (max-width: 560px){
+    .hero{ padding:64px 20px 40px; }
+    .wrap{ padding:0 20px; }
+    section.block{ padding:40px 0; }
+    .system-map{ padding:18px; }
+    .decision-entry{ padding:18px; }
+    footer{ padding:32px 20px 60px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .progress{ transition:none; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="case-nav">
+  <div class="case-nav-inner">
+    <a href="../">Home</a>
+    <a href="../?page=work">Work</a>
+    <a href="../?page=resume">Resume</a>
+    <a href="../?page=contact">Contact</a>
+  </div>
+</nav>
+
+<div class="progress" id="progress"></div>
+
+<div class="hero">
+  <div class="eyebrow">ARC-Net · Case Study 02</div>
+  <h1 class="title">The <em>Coordination</em> Layer</h1>
+  <p class="subtitle">A GPT-based workflow system designed and implemented at ARC-Net to carry the coordination load while a full internal platform remained out of scope.</p>
+  <div class="meta-row">
+    <span>Context<b>ARC-Net at ARTPARK, IISc Bangalore</b></span>
+    <span>Approach<b>Modular GPT layer mapped to platform modules</b></span>
+    <span>Status<b>Implemented and used by the team</b></span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="nav-col" aria-label="Sections">
+    <div class="nav-label">Contents</div>
+    <ol>
+      <li><a href="#problem"><span class="n">01</span>The Problem</a></li>
+      <li><a href="#arcconnect"><span class="n">02</span>ARConnect</a></li>
+      <li><a href="#diagnosis"><span class="n">03</span>The Diagnosis</a></li>
+      <li><a href="#system"><span class="n">04</span>The System</a></li>
+      <li><a href="#decisions"><span class="n">05</span>Decision Log</a></li>
+      <li><a href="#gpts"><span class="n">06</span>How the GPTs Worked</a></li>
+      <li><a href="#limits"><span class="n">07</span>What This Is Not</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section class="block reveal" id="problem">
+      <div class="block-label"><span class="num">01</span> The Problem</div>
+      <h2>Coordination at scale without enforcement mechanisms.</h2>
+      <p class="lede">ARC-Net ran across six research verticals with a team that was majority students and early-career researchers. High autonomy by design, low overhead by necessity.</p>
+      <p>As the organisation scaled, the gap between what was happening across verticals and what was visible to the founding team widened. Work logs went unfiled not because people weren't working, but because filing them felt like overhead with no return value for the person doing it. Briefs stayed vague because the cost of vagueness only showed up later, at review. Feedback from multiple collaborators arrived informally, contradicted itself, and left researchers to resolve the conflict alone. When someone moved on, what they knew moved on with them.</p>
+      <p>The question wasn't how to enforce better behaviour. It was how to make the right thing easier than the wrong thing, at every stage of the project lifecycle.</p>
+    </section>
+
+    <section class="block reveal" id="arcconnect">
+      <div class="block-label"><span class="num">02</span> ARConnect</div>
+      <h2>The platform I designed for this problem.</h2>
+      <p class="lede">ARConnect was a full internal platform designed to systematise coordination across ARC-Net's five operational modules.</p>
+      <p>I designed the product requirements across work and productivity tracking, onboarding and offboarding, leave and compliance, team communication, and project visibility. A Phase 1 development proposal was scoped with an engineering partner, covering authentication, dashboard shells, work log submission, document upload, and leave management.</p>
+      <p>Building it fell outside what the team could take on at the time. The coordination problem remained, and the organisation kept growing. That's the gap this system addresses.</p>
+      <div class="callout">
+        <span class="callout-tag">The design constraint</span>
+        <p>The platform vision was fully specified. The question became: what can be built right now, without engineering resources, that carries the coordination load until ARConnect exists? The answer shaped every decision in the system below.</p>
+      </div>
+    </section>
+
+    <section class="block reveal" id="diagnosis">
+      <div class="block-label"><span class="num">03</span> The Diagnosis</div>
+      <h2>Twenty workflow gaps. One split that drove the architecture.</h2>
+      <p class="lede">Mapped across the full project lifecycle, from the moment someone joins to the moment a project closes.</p>
+      <p>The twenty gaps split into two categories once examined together. Some are conversational by nature: they need the right questions asked in the right order, produce a structured output, and require no persistent state, no access controls, no database. These are GPT-appropriate. The team member is the only person in the loop, and the output lives in a document they control.</p>
+      <p>Others require persistent records that survive beyond a single conversation, role-based access so the right people see the right data, cross-team visibility that aggregates across verticals, and audit trails for compliance. These are what ARConnect was designed to handle. Trying to substitute a GPT here produces something fragile that looks like infrastructure without being infrastructure.</p>
+      <p>That split drove the system design. Build well where GPTs genuinely fit. Mark everything else as platform-dependent and leave it there.</p>
+    </section>
+
+    <section class="block reveal" id="system">
+      <div class="block-label"><span class="num">04</span> The System</div>
+      <h2>A GPT layer mapped directly onto ARConnect's module structure.</h2>
+      <p class="lede">Each GPT covers the conversational, automatable surface of one ARConnect module. The modules that need real infrastructure stay marked as platform-dependent.</p>
+      <p>The outputs connect across GPTs. The Translation Brief produced at planning becomes the reference the Retrospective closes against at project end. Daily logs become the raw material the weekly digest synthesises for leadership. The system shares a document language and output format without needing shared memory.</p>
+
+      <div class="system-map">
+        <div class="map-legend">
+          <span><span class="legend-dot built"></span>GPT layer (implemented)</span>
+          <span><span class="legend-dot platform"></span>Platform layer (ARConnect)</span>
+        </div>
+
+        <div class="map-module">
+          <div class="module-header">Work and productivity</div>
+          <div class="module-row">
+            <span class="workflow-chip built">Work log</span>
+            <span class="workflow-chip built">Weekly digest</span>
+            <span class="workflow-chip platform">Goal tracking</span>
+            <span class="workflow-chip platform">Cross-vertical view</span>
+            <span class="workflow-chip platform">Milestone tracking</span>
+          </div>
+        </div>
+        <hr class="module-divider">
+
+        <div class="map-module">
+          <div class="module-header">Onboarding and offboarding</div>
+          <div class="module-row">
+            <span class="workflow-chip built">Onboarding</span>
+            <span class="workflow-chip built">Exit handoff</span>
+            <span class="workflow-chip platform">Document submission</span>
+            <span class="workflow-chip platform">Compliance records</span>
+          </div>
+        </div>
+        <hr class="module-divider">
+
+        <div class="map-module">
+          <div class="module-header">Project execution</div>
+          <div class="module-row">
+            <span class="workflow-chip built">Brief intake</span>
+            <span class="workflow-chip platform">Dependency flags</span>
+            <span class="workflow-chip platform">Research synthesis</span>
+            <span class="workflow-chip platform">Resource allocation</span>
+          </div>
+        </div>
+        <hr class="module-divider">
+
+        <div class="map-module">
+          <div class="module-header">Review</div>
+          <div class="module-row">
+            <span class="workflow-chip built">Feedback synthesis</span>
+            <span class="workflow-chip platform">Peer review routing</span>
+            <span class="workflow-chip platform">Performance records</span>
+          </div>
+        </div>
+        <hr class="module-divider">
+
+        <div class="map-module">
+          <div class="module-header">Project close</div>
+          <div class="module-row">
+            <span class="workflow-chip built">Retrospective</span>
+            <span class="workflow-chip platform">Knowledge store</span>
+            <span class="workflow-chip platform">Deliverable packaging</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block reveal" id="decisions">
+      <div class="block-label"><span class="num">05</span> Decision Log</div>
+      <h2>The forks, and what got rejected.</h2>
+
+      <div class="decision-entry">
+        <div class="decision-fork">Fork 01 · Architecture</div>
+        <div class="decision-compare">
+          <span class="rejected">One monolithic GPT covering all workflows</span>
+          <span class="arrow">→</span>
+          <span class="chosen">Modular GPTs, one per workflow cluster</span>
+        </div>
+        <p class="decision-rationale">A single heavy prompt loses fidelity at the edges, and users don't know what to ask a general-purpose assistant. Modular also meant the team could adopt one workflow at a time, which is how it actually rolled out.</p>
+      </div>
+
+      <div class="decision-entry">
+        <div class="decision-fork">Fork 02 · Persistence</div>
+        <div class="decision-compare">
+          <span class="rejected">Google Sheets integration for log persistence</span>
+          <span class="arrow">→</span>
+          <span class="chosen">Stateless GPTs, production architecture documented separately</span>
+        </div>
+        <p class="decision-rationale">Converting a conversational tool into an infrastructure dependency means when the dependency breaks, the whole workflow breaks. Stateless was the more resilient choice for a system running without dedicated engineering support.</p>
+      </div>
+
+      <div class="decision-entry">
+        <div class="decision-fork">Fork 03 · Tone</div>
+        <div class="decision-compare">
+          <span class="rejected">Neutral, form-like interaction</span>
+          <span class="arrow">→</span>
+          <span class="chosen">Conversational, with a visible return for the person logging</span>
+        </div>
+        <p class="decision-rationale">Logs went unfiled because submitting felt like reporting upward with nothing coming back. Producing a personal reflection alongside the leadership summary gave the person logging a reason to complete it.</p>
+      </div>
+    </section>
+
+    <section class="block reveal" id="gpts">
+      <div class="block-label"><span class="num">06</span> How the GPTs Worked</div>
+      <h2>Three examples from the system.</h2>
+      <p class="lede">Each GPT ran as a structured conversation with a defined output. A few examples of how that played out in practice.</p>
+
+      <div class="gpt-card">
+        <span class="gpt-module-tag">Work and productivity module</span>
+        <div class="gpt-title">Work Log</div>
+        <p>Asked four questions in sequence, then produced two outputs: a personal reflection for the team member and a structured leadership log. The flag field only populated if something needed escalation, which meant leadership got a signal without the person logging feeling watched.</p>
+      </div>
+
+      <div class="gpt-card">
+        <span class="gpt-module-tag">Project execution module</span>
+        <div class="gpt-title">Brief Intake</div>
+        <p>Walked the researcher through the Translation Brief conversationally and pushed back on vague answers until the scope and definition of done were concrete enough that two people would independently agree on them. It did not accept the first answer if that answer wouldn't survive a disagreement.</p>
+      </div>
+
+      <div class="gpt-card">
+        <span class="gpt-module-tag">Review module</span>
+        <div class="gpt-title">Feedback Synthesis</div>
+        <p>Took raw feedback from multiple reviewers in any format and produced a prioritised action note with each item tagged: Clear, Single Source, or Contested. Contested items surfaced both positions side by side. The GPT never resolved a conflict. That call belonged to the researcher and their lead.</p>
+      </div>
+    </section>
+
+    <section class="block reveal" id="limits">
+      <div class="block-label"><span class="num">07</span> What This Is Not</div>
+      <h2>The GPT layer carried the conversational tier. The platform tier stayed open.</h2>
+      <p class="lede">Fourteen of the twenty workflows identified remain platform-dependent. The GPT layer was never intended to close that gap.</p>
+      <p>Goal tracking, dependency flags across verticals, peer review routing, compliance records, cross-vertical project visibility, and hiring pipelines all require persistent infrastructure that a stateless GPT cannot provide without becoming something else entirely. The system map makes that boundary explicit and holds it there.</p>
+
+
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Ramanpreet Kaur &middot; Research &amp; Strategy &middot; ARC-Net Coordination Layer
+</footer>
+
+<script>
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const scrollTop = document.documentElement.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    progress.style.width = (scrollTop / scrollHeight * 100) + '%';
+  });
+
+  const sections = document.querySelectorAll('section.block');
+  const navLinks = document.querySelectorAll('.nav-col a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){ entry.target.classList.add('revealed'); }
+    });
+  }, { threshold: 0.08 });
+  revealEls.forEach(el => revealObserver.observe(el));
+</script>
+
+</body>
+</html>
