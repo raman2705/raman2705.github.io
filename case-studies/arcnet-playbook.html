@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Translation Playbook · ARC-Net</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F7F4EE;
+    --bg-raised: #FCFAF6;
+    --ink: #211C19;
+    --ink-soft: #58504A;
+    --rule: #DED5C6;
+    --rule-strong: #C9BCA8;
+    --terracotta: #9C5049;
+    --terracotta-soft: #E7D3CF;
+    --sage: #4F5C46;
+    --sage-soft: #DCE2D4;
+    --mono-label: #7A6F63;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Source Sans 3', sans-serif;
+    font-size:17px;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--terracotta-soft); }
+
+  a{ color:var(--terracotta); }
+
+  .progress{
+    position:fixed;
+    top:0; left:0;
+    height:3px;
+    width:0%;
+    background:var(--terracotta);
+    z-index:100;
+    transition:width .08s linear;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:220px minmax(0,720px);
+    gap:64px;
+    padding:0 32px;
+  }
+
+  /* ---------- Header / Hero ---------- */
+  .hero{
+    max-width:1180px;
+    margin:0 auto;
+    padding:88px 32px 56px;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--terracotta);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:1px;
+    background:var(--terracotta);
+    display:inline-block;
+  }
+  h1.title{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:clamp(40px, 6vw, 64px);
+    line-height:1.05;
+    letter-spacing:-0.01em;
+    margin:0 0 20px;
+    max-width:820px;
+  }
+  h1.title em{
+    font-style:italic;
+    color:var(--terracotta);
+  }
+  .subtitle{
+    font-size:19px;
+    color:var(--ink-soft);
+    max-width:600px;
+    margin:0 0 28px;
+  }
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:28px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--mono-label);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    border-top:1px solid var(--rule);
+    padding-top:22px;
+    margin-top:36px;
+  }
+  .meta-row span b{
+    display:block;
+    color:var(--ink);
+    text-transform:none;
+    font-family:'Source Sans 3', sans-serif;
+    font-size:14px;
+    letter-spacing:0;
+    margin-top:4px;
+  }
+
+  /* ---------- Layout: side nav + content ---------- */
+  .nav-col{
+    position:sticky;
+    top:48px;
+    align-self:start;
+    padding-top:4px;
+    display:none;
+  }
+  .nav-col .nav-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:16px;
+  }
+  .nav-col ol{
+    list-style:none;
+    margin:0; padding:0;
+    border-left:1px solid var(--rule);
+  }
+  .nav-col li{ margin:0; }
+  .nav-col a{
+    display:block;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:9px 0 9px 18px;
+    border-left:1px solid transparent;
+    margin-left:-1px;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .nav-col a:hover{ color:var(--ink); }
+  .nav-col a.active{
+    color:var(--terracotta);
+    border-left:1px solid var(--terracotta);
+    font-weight:500;
+  }
+  .nav-col .n{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--mono-label);
+    margin-right:8px;
+  }
+
+  main{ min-width:0; padding-bottom:60px; }
+
+  section.block{
+    padding:52px 0;
+    border-bottom:1px solid var(--rule);
+    scroll-margin-top:40px;
+  }
+  section.block:last-of-type{ border-bottom:none; }
+
+  .block-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:12px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .block-label .num{ color:var(--terracotta); }
+
+  h2{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-size:32px;
+    margin:0 0 22px;
+    letter-spacing:-0.01em;
+  }
+  h3{
+    font-family:'Newsreader', serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:21px;
+    margin:32px 0 14px;
+    color:var(--terracotta);
+  }
+
+  p{ margin:0 0 18px; color:var(--ink); }
+  .lede{ font-size:18.5px; color:var(--ink-soft); }
+
+  ul.feature-list{
+    list-style:none;
+    margin:22px 0; padding:0;
+    display:flex; flex-direction:column; gap:14px;
+  }
+  ul.feature-list li{
+    padding-left:22px;
+    position:relative;
+  }
+  ul.feature-list li::before{
+    content:"•";
+    position:absolute; left:0; top:0;
+    color:var(--terracotta);
+  }
+  ul.feature-list b{ font-weight:600; }
+
+  .callout{
+    background:var(--bg-raised);
+    border:1px solid var(--rule);
+    border-left:3px solid var(--sage);
+    border-radius:2px;
+    padding:22px 26px;
+    margin:26px 0;
+  }
+  .callout .callout-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--sage);
+    margin-bottom:10px;
+    display:block;
+  }
+  .callout p:last-child{ margin-bottom:0; }
+
+  .boundary-note{
+    border:1px dashed var(--rule-strong);
+    padding:20px 24px;
+    margin:26px 0;
+    background:transparent;
+    font-size:15.5px;
+    color:var(--ink-soft);
+  }
+  .boundary-note .tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:block;
+    margin-bottom:10px;
+  }
+
+  /* ---------- Signature element: The Translation Brief card ---------- */
+  .brief-card{
+    position:relative;
+    background:var(--bg-raised);
+    border:1px solid var(--rule-strong);
+    border-radius:3px;
+    padding:36px 36px 30px;
+    margin:34px 0 30px;
+    box-shadow: 6px 6px 0 rgba(156,80,73,0.08);
+  }
+  .brief-card::before{
+    content:"TRANSLATION BRIEF";
+    position:absolute;
+    top:-11px; left:32px;
+    background:var(--bg);
+    padding:0 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    color:var(--terracotta);
+  }
+  .brief-field{
+    margin-bottom:22px;
+  }
+  .brief-field:last-child{ margin-bottom:0; }
+  .brief-field .field-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brief-field .field-label .req{
+    color:var(--terracotta);
+    font-size:10px;
+  }
+  .field-fill{
+    border-bottom:1px dashed var(--rule-strong);
+    padding:6px 0 10px;
+    color:var(--ink-soft);
+    font-style:italic;
+    font-size:15px;
+  }
+  .brief-optional{
+    margin-top:24px;
+    padding-top:20px;
+    border-top:1px solid var(--rule);
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .brief-optional .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    border:1px solid var(--rule-strong);
+    border-radius:20px;
+    padding:5px 12px;
+  }
+  .signature-field{
+    border-left:3px solid var(--sage);
+    padding-left:18px;
+    margin-left:-1px;
+  }
+  .signature-field .sig{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--sage);
+    border:1px solid var(--sage);
+    border-radius:10px;
+    padding:2px 9px;
+    margin-left:2px;
+  }
+  .confidence-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    padding:1px 8px;
+    border-radius:10px;
+  }
+  .confidence-tag.solid{ background:var(--sage-soft); color:var(--sage); }
+  .confidence-tag.guessing{ background:var(--terracotta-soft); color:var(--terracotta); }
+
+  /* ---------- Flow diagram ---------- */
+  .flow{
+    margin:30px 0 10px;
+    display:flex;
+    flex-direction:column;
+  }
+  .flow-step{
+    display:grid;
+    grid-template-columns:32px 1fr;
+    gap:18px;
+    padding:16px 0;
+  }
+  .flow-step .dot-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .flow-step .dot{
+    width:11px; height:11px;
+    border-radius:50%;
+    background:var(--terracotta);
+    flex-shrink:0;
+    margin-top:5px;
+  }
+  .flow-step .line{
+    flex:1;
+    width:1px;
+    background:var(--rule-strong);
+    margin-top:4px;
+  }
+  .flow-step:last-child .line{ display:none; }
+  .flow-step .step-title{
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .flow-step .step-desc{
+    color:var(--ink-soft);
+    font-size:15.5px;
+  }
+  .flow-step.essential .dot{
+    background:var(--terracotta);
+    box-shadow:0 0 0 4px var(--terracotta-soft);
+  }
+  .essential-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--terracotta);
+    border:1px solid var(--terracotta);
+    border-radius:10px;
+    padding:2px 8px;
+    margin-left:8px;
+    vertical-align:middle;
+  }
+
+  /* ---------- Failure mode cards ---------- */
+  .failure-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:14px;
+    margin:26px 0;
+  }
+  .failure-card{
+    border:1px solid var(--rule);
+    border-left:3px solid var(--terracotta);
+    background:var(--bg-raised);
+    padding:20px 22px;
+    border-radius:2px;
+  }
+  .failure-card .fc-title{
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .failure-card p{
+    font-size:14.5px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  /* ---------- Applied Example ---------- */
+  .example-frame{
+    border:1px solid var(--rule);
+    background:var(--bg-raised);
+    border-radius:3px;
+    padding:6px;
+    margin:28px 0;
+  }
+  .example-inner{
+    border:1px solid var(--rule);
+    padding:32px 34px;
+    border-radius:2px;
+  }
+  .example-scenario-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--sage);
+    margin-bottom:16px;
+    display:block;
+  }
+  .example-inner p{ font-size:16px; }
+  .example-inner p:last-child{ margin-bottom:0; }
+
+  .case-nav{
+    position:sticky;
+    top:0;
+    z-index:101;
+    background:var(--bg);
+    border-bottom:1px solid var(--rule);
+  }
+  .case-nav .case-nav-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+    height:56px;
+    display:flex;
+    align-items:center;
+    gap:32px;
+  }
+  .case-nav a{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    text-decoration:none;
+    transition:color .15s ease;
+  }
+  .case-nav a:hover{ color:var(--terracotta); }
+
+  footer{
+    max-width:1180px;
+    margin:0 auto;
+    padding:40px 32px 80px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--mono-label);
+    letter-spacing:.04em;
+    border-top:1px solid var(--rule);
+  }
+
+  @media (min-width: 920px){
+    .nav-col{ display:block; }
+  }
+  @media (max-width: 919px){
+    .wrap{ grid-template-columns:1fr; }
+    .failure-grid{ grid-template-columns:1fr; }
+  }
+  @media (max-width: 560px){
+    .hero{ padding:64px 20px 40px; }
+    .wrap{ padding:0 20px; }
+    section.block{ padding:40px 0; }
+    .brief-card{ padding:28px 20px 24px; }
+    .example-inner{ padding:24px 22px; }
+    footer{ padding:32px 20px 60px; }
+  }
+
+  /* ---------- Decision Log ---------- */
+  .decision-entry{
+    border:1px solid var(--rule);
+    background:var(--bg-raised);
+    border-radius:2px;
+    padding:24px 26px;
+    margin-bottom:18px;
+  }
+  .decision-entry:last-child{ margin-bottom:0; }
+  .decision-fork{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--mono-label);
+    margin-bottom:14px;
+  }
+  .decision-compare{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:12px;
+    margin-bottom:14px;
+    font-size:15.5px;
+  }
+  .decision-compare .rejected{
+    color:var(--ink-soft);
+    text-decoration:line-through;
+    text-decoration-color:var(--rule-strong);
+  }
+  .decision-compare .arrow{
+    color:var(--mono-label);
+    font-family:'IBM Plex Mono', monospace;
+  }
+  .decision-compare .chosen{
+    color:var(--terracotta);
+    font-weight:600;
+  }
+  .decision-rationale{
+    font-size:15px;
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .measurement-note{
+    margin-top:28px;
+  }
+  .measurement-note h3{ margin-top:0; }
+
+  @media (max-width: 560px){
+    .decision-entry{ padding:18px 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .progress{ transition:none; }
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+  }
+
+  .reveal{
+    opacity:0;
+    transform:translateY(16px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .reveal.revealed{
+    opacity:1;
+    transform:translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<nav class="case-nav">
+  <div class="case-nav-inner">
+    <a href="../index.html">Home</a>
+    <a href="../work.html">Work</a>
+    
+    <a href="../contact.html" style="font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;background:#9C5049;color:#F7F4EE;padding:9px 20px;border-radius:2px;text-decoration:none;">Contact</a>
+  </div>
+</nav>
+
+<div class="progress" id="progress"></div>
+
+<div class="hero">
+  <div class="eyebrow">ARC-Net Playbook · Case Study 01</div>
+  <h1 class="title">The Translation Playbook</h1>
+  <p class="subtitle">A research-to-execution playbook for open-domain teams, turning direction into buildable, deployable work without requiring the team to already know the domain.</p>
+  <div class="meta-row">
+    <span>Built for<b>Student &amp; early-career research teams</b></span>
+    <span>Core mechanism<b>Scope, definition of done, predicted domain walls</b></span>
+    <span>Origin<b>Designed from ARC-Net's operating model</b></span>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="nav-col">
+    <div class="nav-label">Contents</div>
+    <ol id="toc">
+      <li><a href="#problem"><span class="n">01</span>The Problem</a></li>
+      <li><a href="#who-for"><span class="n">02</span>Who It's For</a></li>
+      <li><a href="#mechanism"><span class="n">03</span>Core Mechanism</a></li>
+      <li><a href="#decisions"><span class="n">04</span>Decision Log</a></li>
+      <li><a href="#apply"><span class="n">05</span>How To Apply It</a></li>
+      <li><a href="#failure"><span class="n">06</span>Failure Modes</a></li>
+      <li><a href="#example"><span class="n">07</span>Applied Example</a></li>
+      <li><a href="#adapt"><span class="n">08</span>Adapting It</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section class="block reveal" id="problem">
+      <div class="block-label"><span class="num">01</span> The Problem</div>
+      <h2>The failure point isn't the start. It's the unresourced middle.</h2>
+      <p class="lede">Most translation frameworks harden the kickoff: better briefs, clearer kickoff meetings, sharper initial direction. That's not where this framework points, because that's not where the actual risk sits.</p>
+      <p>At the start of a project, direction and expert input are both available: a founder or client has just explained what they want, and a domain expert, if one exists, is still in the room. At the end, there's a review, where problems finally get caught. The dangerous stretch is the one in between: after scoping, before delivery, when a researcher is executing alone, expert access has tapered off, and nobody is watching closely enough to catch drift as it happens. That's where scope quietly shifts, where a researcher's definition of "done" diverges from what the client or team expected, and where problems go unnoticed until most of the work is already sunk. The mechanism this playbook builds exists specifically for that stretch, not for the kickoff.</p>
+
+      <h3>Why the middle was unresourced</h3>
+      <p>ARC-Net grew out of an earlier collaborative effort that funded and supported students working on ideas they found genuinely interesting, without heavy funding behind it. When it formalized with actual funding, it took shape as an open-domain research and development organization. Over time, not all at once, it accumulated work across six areas: AI, climate tech, space tech, MedTech, communication, and cognitive science. That breadth, built up project by project, was the organization's core advantage: speed, low-cost talent, and the ability to take on work in an area the moment an opportunity appeared, without waiting to build specialist depth first.</p>
+      <p>But execution sat with students and young professionals who, by definition, were building domain fluency in real time rather than arriving with it. The organization's advantage and its structural risk came from the same source: an open-domain organization staffed by people still developing depth in whatever domain they'd been assigned, expected to produce domain-credible work anyway.</p>
+      <p>Domain experts and client-side collaborators helped close this gap, but only up to a point. Access to that expertise was typically front-loaded, heaviest during scoping and early direction-setting, and it tapered as a project moved into independent execution. Once a researcher was past the initial framing, they were largely on their own to keep the work credible, exactly through the middle stretch described above.</p>
+      <p>Without a deliberate structure in place, this showed up as:</p>
+      <ul class="feature-list">
+        <li><b>Scope drift:</b> work quietly expanding or narrowing from what was originally intended, uncaught until review</li>
+        <li><b>Misaligned deliverables:</b> the researcher's definition of "done" not matching what the client or the rest of the team expected</li>
+        <li><b>Sunk effort:</b> problems surfacing only at final review, after most of the work was already done</li>
+      </ul>
+      <p>The playbook exists to close this gap and to increase how quickly a project moves from direction to execution. It doesn't remove the tension between open-domain breadth and execution-level domain fluency, but it builds enough structure into the brief and the checkpoints that drift gets caught early rather than at the end, so scoping itself happens faster.</p>
+    </section>
+
+    <section class="block reveal" id="who-for">
+      <div class="block-label"><span class="num">02</span> Who It's For</div>
+      <h2>The conditions this is built for</h2>
+      <p>This playbook is built for student or early-career research teams: groups with non-uniform experience levels and limited pre-existing depth in whatever vertical they've been assigned. It's designed specifically for open-domain organizations, ones that take on work across multiple verticals rather than specializing in one, and therefore can't rely on the team already knowing the domain going in.</p>
+      <p>It applies to research-to-execution work: situations where foundational or applied research needs to become a scoped, buildable output, whether that's a method, a system design, a prototype, or a decision framework, rather than stay open-ended. It assumes some domain expert or client-side support exists, even if that support is front-loaded early in the project rather than available throughout.</p>
+      <div class="boundary-note">
+        <span class="tag">Where it doesn't apply</span>
+        Fully in-house, exploratory research with no external client or collaborator, work with no fixed deliverable or clear definition of done, such as research feeding into someone's own thesis rather than a scoped output for an outside party, sits outside what this playbook is built to solve. Forcing expectation-setting onto genuinely open-ended exploration doesn't help; it just adds structure where the work doesn't have a fixed endpoint yet.
+      </div>
+    </section>
+
+    <section class="block reveal" id="mechanism">
+      <div class="block-label"><span class="num">03</span> Core Mechanism</div>
+      <h2>The Translation Brief</h2>
+      <p>Before ARC-Net formalized, expectation-setting happened the way it does in any small, closely collaborative group: in conversation, not on paper. The core team worked directly alongside whoever was executing a project, so expectations were understood, just not written down anywhere. That closeness worked well at a small scale, but it didn't leave behind a portable artifact that a new project, or a new person, could pick up and reuse.</p>
+      <p>The Translation Brief takes that same close, collaborative practice and turns it into a repeatable document: short, mandatory, created at the exact point a project moves from direction into execution. It has two required fields, the two that mattered most in practice, plus one addition specific to this framework.</p>
+
+      <div class="brief-card">
+        <div class="brief-field">
+          <div class="field-label">Scope Boundary <span class="req">required</span></div>
+          <div class="field-fill">What's explicitly in and out of this piece of work.</div>
+        </div>
+        <div class="brief-field">
+          <div class="field-label">Definition of Done <span class="req">required</span></div>
+          <div class="field-fill">What the deliverable looks like when finished, concrete enough that two different people would independently agree on whether it's done.</div>
+        </div>
+        <div class="brief-field signature-field">
+          <div class="field-label">Predicted Domain Walls <span class="sig">this framework's addition</span></div>
+          <div class="field-fill">2–3 points, named before execution starts, where the researcher expects to hit the edge of their current domain knowledge. Each item in the definition of done gets tagged against it: <span class="confidence-tag solid">solid</span> where the researcher is confident, <span class="confidence-tag guessing">guessing</span> where they aren't.</div>
+        </div>
+        <div class="brief-optional">
+          <span class="chip">Timeline &amp; checkpoints</span>
+          <span class="chip">Owner &amp; reviewer</span>
+          <span class="chip">Dependency flags</span>
+        </div>
+      </div>
+
+      <p>Everything below the line is optional scaffolding depending on a project's complexity, not a core requirement. Scope and definition of done are where drift actually happened; the rest exists to support them, not replace them.</p>
+
+      <p>Expert access at ARC-Net was front-loaded, heaviest at scoping, and thinnest exactly where domain walls tend to appear: the middle of execution. Pre-registering where a wall is expected, before that access disappears, means the researcher isn't guessing where to spend a shrinking resource later. It converts front-loaded, generic expert attention into something targeted, pointed at the parts of the brief already flagged "guessing," instead of spread evenly across a project where most of it was never going to be needed. The logic mirrors pre-registration in research: locking the known unknowns and the success criteria before a looming deadline can quietly move them.</p>
+    </section>
+
+    <section class="block reveal" id="decisions">
+      <div class="block-label"><span class="num">04</span> Decision Log</div>
+      <h2>The forks, and what got rejected</h2>
+      <p>A finished framework tends to read as if it was obvious from the start. It wasn't. A few real forks came up while designing this, and naming the road not taken is more useful than only presenting the conclusion.</p>
+
+      <div class="decision-entry">
+        <div class="decision-fork">Fork 01 &nbsp;·&nbsp; How much structure to require</div>
+        <div class="decision-compare">
+          <span class="rejected">A full stage-gate process with a RACI assignment per project</span>
+          <span class="arrow">→</span>
+          <span class="chosen">Two mandatory fields: scope and definition of done</span>
+        </div>
+        <p class="decision-rationale">Every added mandatory field taxes adoption in a small, busy team. Scope and definition of done were where drift actually happened in practice; a heavier structure would have added compliance cost without addressing that failure point any better. Everything else, timeline, ownership, dependencies, stays optional, added only where a project's complexity actually calls for it.</p>
+      </div>
+
+      <div class="decision-entry">
+        <div class="decision-fork">Fork 02 &nbsp;·&nbsp; How to frame hitting a domain wall</div>
+        <div class="decision-compare">
+          <span class="rejected">Treat it as a researcher shortfall to be minimized</span>
+          <span class="arrow">→</span>
+          <span class="chosen">Treat it as expected, priced into the model from the start</span>
+        </div>
+        <p class="decision-rationale">Clients engaging with an early-stage, low-cost model understood the trade they were making. Framing domain walls as a personal failing would push researchers to hide gaps rather than surface them, which is the opposite of what the playbook needs. Naming them as expected makes surfacing the safer choice, not the riskier one.</p>
+      </div>
+
+      <div class="decision-entry">
+        <div class="decision-fork">Fork 03 &nbsp;·&nbsp; Who to design for first</div>
+        <div class="decision-compare">
+          <span class="rejected">A generalized, team-agnostic framework from the start</span>
+          <span class="arrow">→</span>
+          <span class="chosen">Student and early-career teams first, other team types as an explicit extension</span>
+        </div>
+        <p class="decision-rationale">A framework built to fit every team from the outset usually ends up precise for none of them. Anchoring to the sharpest, most specific case, student researchers operating without domain depth, forces the mechanism to earn its place before it gets generalized to anyone else.</p>
+      </div>
+
+      <div class="measurement-note">
+        <h3>How we'd know it worked</h3>
+        <p>Discovery-to-scoping time did measurably drop as this practice took hold at ARC-Net. Going forward, the more rigorous way to track that: compare discovery-to-scoping time across a matched set of projects, teams using the Translation Brief against teams that aren't, within the same period, while controlling for how experienced the researchers already are. That control matters, since a simple before-and-after comparison can end up crediting the framework for a gain that partly reflects a more experienced team.</p>
+      </div>
+    </section>
+
+    <section class="block reveal" id="apply">
+      <div class="block-label"><span class="num">05</span> How To Apply It</div>
+      <h2>A lifecycle, not a script</h2>
+      <p>This isn't meant to be followed as a rigid sequence. A real project deviates constantly, and part of what this playbook does is give a student researcher a working map of what a project lifecycle actually looks like, including the parts where things don't go as planned.</p>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="dot-col"><div class="dot"></div><div class="line"></div></div>
+          <div>
+            <div class="step-title">Direction enters</div>
+            <div class="step-desc">The core team triages it and decides ownership.</div>
+          </div>
+        </div>
+        <div class="flow-step essential">
+          <div class="dot-col"><div class="dot"></div><div class="line"></div></div>
+          <div>
+            <div class="step-title">Translation Brief written <span class="essential-tag">non-negotiable</span></div>
+            <div class="step-desc">Scope and definition of done are set before work starts, since everything downstream depends on it existing.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="dot-col"><div class="dot"></div><div class="line"></div></div>
+          <div>
+            <div class="step-title">Execution, brief as a living reference</div>
+            <div class="step-desc">The researcher works against it and returns to it whenever something shifts: new information, a client changing direction, or hitting a domain wall.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="dot-col"><div class="dot"></div><div class="line"></div></div>
+          <div>
+            <div class="step-title">Pitch-back for external work</div>
+            <div class="step-desc">A check against the brief before anything reaches the client, catching drift early.</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="dot-col"><div class="dot"></div></div>
+          <div>
+            <div class="step-title">Close-out</div>
+            <div class="step-desc">Not just confirming the deliverable is done, but noting what deviated from the original brief and why, so the next project benefits from it.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <span class="callout-tag">A note on domain walls</span>
+        <p>A researcher reaching the edge of their current domain knowledge mid-project is expected, not a failure. ARC-Net was early-stage work, and clients engaging with it understood they were getting a low-cost, high-risk-tolerant model. Domain walls are part of that trade, not a shortfall on the researcher's part. The playbook's job isn't to prevent this; it's to make sure a domain wall gets surfaced and handled, through revisiting the brief and pulling in expert input where available, rather than quietly pushed through or hidden.</p>
+      </div>
+    </section>
+
+    <section class="block reveal" id="failure">
+      <div class="block-label"><span class="num">06</span> Failure Modes</div>
+      <h2>Where it breaks, even when it's followed</h2>
+      <p>A few recurring failure modes are worth naming explicitly, not because the playbook eliminates them, but because knowing where things tend to break is what makes the framework credible rather than theoretical.</p>
+
+      <div class="failure-grid">
+        <div class="failure-card">
+          <div class="fc-title">Tech / non-tech expectation mismatch</div>
+          <p>A non-technical client-side contact and a technical researcher don't always share the same mental model, even when both believe scope was agreed. The reverse also happens: when the point of contact from ARC-Net's side isn't technical either, the same gap opens up from our end instead of the client's. Written scope helps in both directions, but it doesn't fully close a gap that's about differing fluency, not differing intent.</p>
+        </div>
+        <div class="failure-card">
+          <div class="fc-title">Scope drift unnoticed until review</div>
+          <p>The brief exists, but nobody revisits it mid-project, so drift only surfaces at final review, once most of the work is already sunk.</p>
+        </div>
+        <div class="failure-card">
+          <div class="fc-title">Brief written too vague</div>
+          <p>Definition of done gets filled in loosely just to satisfy the process, which defeats the point of having one at all.</p>
+        </div>
+        <div class="failure-card">
+          <div class="fc-title">Handoff loss on rotation</div>
+          <p>Student teams naturally turn over as people graduate or move on; if the brief doesn't carry enough context, continuity breaks when someone new picks up mid-stream.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block reveal" id="example">
+      <div class="block-label"><span class="num">07</span> Applied Example</div>
+      <h2>Walking through it</h2>
+
+      <div class="example-frame">
+        <div class="example-inner">
+          <span class="example-scenario-tag">Illustrative scenario, not a record of an actual ARC-Net project</span>
+          <p>A client engages ARC-Net wanting a tool to help their internal team make sense of user feedback at scale. The core team takes it on as a cognitive-science-flavored project and assigns a student researcher, with the client-side point of contact being a non-technical product manager who describes the ask as "something that reads our feedback and tells us what people actually mean."</p>
+          <p>Without a brief in place, a researcher might start building a sentiment-analysis pipeline immediately, since that's the closest technical translation of the ask, only to discover three weeks in that the PM actually wanted a framework for manually coding themes in interviews, not an automated tool at all. The mismatch surfaces at review, most of the effort is wasted, and the timeline resets.</p>
+          <p>With the Translation Brief in place, the researcher and the core team draft it together before any research begins. The <b>scope boundary</b> makes explicit what's included: a working framework and a lightweight prototype. And what's excluded: a production-ready tool, ongoing maintenance. The <b>definition of done</b> is written concretely: a documented method for classifying feedback into 3 to 5 recurring themes, validated against a sample of 50 real responses, with a simple interface the PM's team can use without technical support. Writing that down surfaces the mismatch immediately, and the brief gets corrected before any research work starts, not after. At the same sitting, the researcher names two predicted domain walls: qualitative coding methodology, tagged "guessing," and whether 50 responses will be enough to validate the theme framework, also tagged "guessing."</p>
+          <p>Midway through execution, the researcher hits a domain wall: no strong background in qualitative coding methodology. It's not a surprise. At scoping, this was one of the two points flagged under predicted domain walls, and the corresponding item in the definition of done was tagged "guessing" rather than "solid." Because it was already named, a domain expert is looped in at that specific point to validate the coding approach, rather than the researcher spending time deciding whether to ask for help at all.</p>
+          <p>At close-out, the deliverable is checked against the definition of done, and the brief is archived, noting that the initial ask diverged from the eventual need, and that the predicted domain wall matched where the researcher actually needed support: a pattern worth recognizing earlier in future non-technical client engagements.</p>
+          <p>The other predicted domain wall named at scoping, whether 50 responses would be enough to validate the theme framework, never materialized as an issue. That's expected too. Pre-registering domain walls isn't about predicting perfectly; it's about naming enough of them that the ones which do show up already have a plan attached.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block reveal" id="adapt">
+      <div class="block-label"><span class="num">08</span> Adapting It</div>
+      <h2>Beyond students</h2>
+      <p>The playbook's core assumption is a team building domain fluency in real time, not "student" as a literal status. That means it extends naturally to early-career professionals in a similar position: new hires in a generalist or consulting-style organization, junior staff moved onto an unfamiliar vertical, anyone operating without deep pre-existing domain grounding.</p>
+      <p>The Translation Brief mechanism itself doesn't change. What shifts is the framing around domain walls: for early-career professionals, hitting one carries more expectation of self-sufficiency than it would for a student. The organization can lean less on front-loaded expert access and more on the individual's own judgment to flag when they're out of depth. The mechanism stays the same, but the assumed level of hand-holding around it adjusts to who's using it.</p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  Ramanpreet Kaur · ARC-Net · Case Study 01
+</footer>
+
+<script>
+  // scroll progress
+  const progress = document.getElementById('progress');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progress.style.width = scrolled + '%';
+  });
+
+  // active nav tracking
+  const sections = document.querySelectorAll('section.block');
+  const navLinks = document.querySelectorAll('#toc a');
+  const setActive = () => {
+    let current = sections[0]?.id;
+    sections.forEach(sec => {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= 120) current = sec.id;
+    });
+    navLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  };
+  window.addEventListener('scroll', setActive);
+  setActive();
+
+  // scroll reveal
+  const revealEls = document.querySelectorAll('.reveal');
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting){
+        entry.target.classList.add('revealed');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+  revealEls.forEach(el => revealObserver.observe(el));
+</script>
+
+</body>
+</html>
