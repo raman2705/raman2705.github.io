@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TSP Instrument · Case Study 03 · Ramanpreet Kaur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F7F4EE;
+      --ink: #1C1A17;
+      --terracotta: #9C5049;
+      --muted: #7A7469;
+      --rule: #D9D4CA;
+      --highlight-bg: #EDE9E1;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: 'Source Sans 3', sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+      padding: 1.1rem 3rem;
+      border-bottom: 1px solid var(--rule);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+    nav a:hover { opacity: 1; }
+
+    .hero {
+      padding: 3.5rem 3rem 0;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero-label {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--terracotta);
+      text-transform: uppercase;
+      margin-bottom: 1.25rem;
+    }
+    .hero-label::before {
+      content: '';
+      display: inline-block;
+      width: 2rem;
+      height: 1.5px;
+      background: var(--terracotta);
+    }
+    .hero-label span { color: var(--muted); }
+
+    h1 {
+      font-family: 'Newsreader', serif;
+      font-size: clamp(2.6rem, 5vw, 3.8rem);
+      font-weight: 400;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+      max-width: 750px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.65;
+      margin-bottom: 3rem;
+    }
+
+    .meta-strip {
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      padding: 1.5rem 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-bottom: 3.5rem;
+    }
+    .meta-item label {
+      display: block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    .meta-item p {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.4;
+    }
+
+    .layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 3rem 6rem;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .toc {
+      position: sticky;
+      top: 2rem;
+    }
+    .toc-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .toc ul { list-style: none; }
+    .toc li {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      padding: 0.35rem 0;
+    }
+    .toc li .num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      min-width: 1.2rem;
+    }
+    .toc li a {
+      font-size: 0.88rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .toc li a:hover,
+    .toc li.active a { color: var(--terracotta); }
+    .toc li.active .num { color: var(--terracotta); }
+
+    .content section {
+      margin-bottom: 4rem;
+      padding-top: 1rem;
+    }
+
+    .section-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-heading {
+      font-family: 'Newsreader', serif;
+      font-size: clamp(1.7rem, 3vw, 2.2rem);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 1.25rem;
+      max-width: 620px;
+    }
+
+    .content p {
+      color: #3A3730;
+      margin-bottom: 1.1rem;
+      max-width: 640px;
+      font-size: 1rem;
+    }
+    .content p:last-child { margin-bottom: 0; }
+
+    .callout {
+      border-left: 2px solid var(--terracotta);
+      padding: 1rem 1.25rem;
+      margin: 1.75rem 0;
+      background: var(--highlight-bg);
+      max-width: 620px;
+    }
+    .callout p {
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin-bottom: 0;
+      font-style: italic;
+    }
+
+    .dimension-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      max-width: 620px;
+      margin: 1.75rem 0;
+    }
+    .dimension-cell {
+      background: var(--cream);
+      padding: 1rem 1.1rem;
+    }
+    .dimension-cell .d-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: var(--terracotta);
+      text-transform: uppercase;
+      margin-bottom: 0.3rem;
+    }
+    .dimension-cell .d-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.3;
+      margin-bottom: 0.2rem;
+    }
+    .dimension-cell .d-signal {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .flow-diagram {
+      max-width: 620px;
+      margin: 1.75rem 0;
+    }
+
+    .tension-list {
+      max-width: 620px;
+      margin: 1.25rem 0;
+    }
+    .tension-item {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 2rem 1fr;
+      gap: 0.75rem;
+      align-items: start;
+    }
+    .tension-item:first-child { border-top: 1px solid var(--rule); }
+    .tension-item .t-num {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--terracotta);
+      padding-top: 0.15rem;
+    }
+    .tension-item .t-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+    .tension-item .t-body {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0;
+      max-width: none;
+    }
+
+    .archetype-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1.25rem 0;
+      max-width: 620px;
+    }
+    .archetype-chip {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.04em;
+      padding: 0.35rem 0.75rem;
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      background: var(--cream);
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .hero { padding: 2.5rem 1.5rem 0; }
+      .meta-strip { grid-template-columns: 1fr; gap: 1.25rem; }
+      .layout { grid-template-columns: 1fr; padding: 0 1.5rem 4rem; gap: 2rem; }
+      .toc { display: none; }
+      h1 { font-size: 2.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="../work.html">Work</a>
+    
+    <a href="../contact.html" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;background:#9C5049;color:#F7F4EE;padding:8px 18px;border-radius:2px;text-decoration:none;opacity:1;">Contact</a>
+  </nav>
+
+  <div class="hero">
+    <div class="hero-label">
+      TSP INSTRUMENT &nbsp;<span>·</span>&nbsp; CASE STUDY 03
+    </div>
+    <h1>Measuring What Interviews Miss</h1>
+    <p class="hero-subtitle">
+      A psychometric instrument designed to surface how early-stage deep-tech researchers navigate ambiguity, failure, and deployment pressure, and to calibrate the support they need once selected.
+    </p>
+
+    <div class="meta-strip">
+      <div class="meta-item">
+        <label>Built for</label>
+        <p>ARTPARK TIR Programme, IISc Bangalore</p>
+      </div>
+      <div class="meta-item">
+        <label>My role</label>
+        <p>Instrument design, construct development, full specification</p>
+      </div>
+      <div class="meta-item">
+        <label>Status</label>
+        <p>Simulation-tested · Deploying soon</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+
+    <aside class="toc">
+      <div class="toc-label">Contents</div>
+      <ul>
+        <li class="active"><span class="num">01</span><a href="#problem">The Problem</a></li>
+        <li><span class="num">02</span><a href="#design-challenge">The Design Challenge</a></li>
+        <li><span class="num">03</span><a href="#construct">Construct Architecture</a></li>
+        <li><span class="num">04</span><a href="#dual-output">Dual-Output Design</a></li>
+        <li><span class="num">05</span><a href="#decisions">Key Decisions</a></li>
+        <li><span class="num">06</span><a href="#tensions">Open Questions</a></li>
+      </ul>
+    </aside>
+
+    <main class="content">
+
+      <section id="problem">
+        <div class="section-label"><span class="num">01</span> THE PROBLEM</div>
+        <h2 class="section-heading">What selection couldn't see.</h2>
+        <p>
+          ARTPARK's Technology Innovators in Residence (TIR) programme selects early-stage deep-tech researchers at TRL 3 (lab-proven technology, no startup yet) and supports them through a structured arc toward commercialisation. Selection was application plus interview: well-suited to evaluating technical merit and idea quality, but without a structured way to assess the behavioural capacity to actually translate.
+        </p>
+        <p>
+          Translational work requires a specific set of things: pushing work into real deployment before it feels ready, revising direction when partners push back, staying attached to the problem rather than to a particular solution. Interviews surface how people talk about these things. Not how they navigate them.
+        </p>
+        <div class="callout">
+          <p>The programme also needed something selection alone couldn't provide: a structured read on what each selected TIR would need from the programme once they were in.</p>
+        </div>
+        <p>
+          One instrument. Two uses. Both from a single assessment taken at application.
+        </p>
+      </section>
+
+      <section id="design-challenge">
+        <div class="section-label"><span class="num">02</span> THE DESIGN CHALLENGE</div>
+        <h2 class="section-heading">What does translational readiness actually look like?</h2>
+        <p>
+          The first problem was the construct. Translational readiness isn't a single trait. It's a cluster of behaviours that only become visible under specific conditions: when work is partially validated, when a partner contradicts your read, when the obvious move is to keep building rather than question the framing.
+        </p>
+        <p>
+          Standard personality assessments measure stable traits. This needed something closer to situational judgement: realistic scenarios with real trade-offs and no obviously correct answer, so the pattern of choices does the work, not any individual response.
+        </p>
+        <p>
+          Social desirability was the second problem. Researchers who've spent time in a translational programme know what "good" looks like in the abstract. The instrument had to make the right answer unclear in the moment, by embedding each decision in a scenario where every option has a cost.
+        </p>
+        <div class="callout">
+          <p>This is also the instrument's defence against AI-assisted gaming. Applicants can paste a scenario into an AI engine and ask for the best answer. But the construct-correct option only becomes identifiable if you understand the specific failure mode each dimension is testing, and the options are calibrated so that reasonable, careful people would still make different choices.</p>
+        </div>
+      </section>
+
+      <section id="construct">
+        <div class="section-label"><span class="num">03</span> CONSTRUCT ARCHITECTURE</div>
+        <h2 class="section-heading">Six dimensions. One underlying question.</h2>
+        <p>
+          Each dimension targets a distinct behavioural pattern that separates researchers who translate from those who don't. The underlying question across all six is the same: when things get hard in a specific way, what does this person actually do?
+        </p>
+
+        <div class="dimension-grid">
+          <div class="dimension-cell">
+            <div class="d-label">D1</div>
+            <div class="d-name">First-Principles Thinking</div>
+            <div class="d-signal">Does the candidate question the framing, or only the solution?</div>
+          </div>
+          <div class="dimension-cell">
+            <div class="d-label">D2</div>
+            <div class="d-name">Applied Readiness</div>
+            <div class="d-signal">Can they ship and decide under partial validation, and name the cost?</div>
+          </div>
+          <div class="dimension-cell">
+            <div class="d-label">D3</div>
+            <div class="d-name">Resilience</div>
+            <div class="d-signal">Is failure treated as information, or as a threat to manage?</div>
+          </div>
+          <div class="dimension-cell">
+            <div class="d-label">D4</div>
+            <div class="d-name">Self-Direction + Collaboration</div>
+            <div class="d-signal">Can they decide alone when needed and loop others in without losing ownership?</div>
+          </div>
+          <div class="dimension-cell">
+            <div class="d-label">D5</div>
+            <div class="d-name">Founder Drive</div>
+            <div class="d-signal">Is intrinsic problem attachment paired with commercial urgency?</div>
+          </div>
+          <div class="dimension-cell">
+            <div class="d-label">D6</div>
+            <div class="d-name">Coachability</div>
+            <div class="d-signal">Does the candidate separate their identity from feedback about their work?</div>
+          </div>
+        </div>
+
+        <p>
+          28 items total. Several dimensions carry sub-signals where within-dimension variation matters: D4 splits into self-direction and collaborative capacity; D5 splits into intrinsic drive and commercial urgency, both required. Imbalance between sub-signals is treated as meaningful, not noise.
+        </p>
+
+        <div class="flow-diagram">
+          <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+            <rect width="600" height="200" fill="#F7F4EE"/>
+            <text x="12" y="22" font-size="8" fill="#9C5049" letter-spacing="1.5" font-family="'IBM Plex Mono', monospace" font-weight="500">PARALLEL SCENARIO TRACKS</text>
+            <rect x="200" y="58" width="200" height="54" rx="2" fill="#EDE9E1" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="300" y="78" font-size="8" fill="#9C5049" text-anchor="middle" letter-spacing="1" font-family="'IBM Plex Mono', monospace">SAME CONSTRUCT</text>
+            <text x="300" y="94" font-size="9" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Same items · Same scoring</text>
+            <text x="300" y="108" font-size="9" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Different surface domain</text>
+            <rect x="12" y="66" width="158" height="36" rx="2" fill="#F7F4EE" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="91" y="81" font-size="8" fill="#9C5049" text-anchor="middle" letter-spacing="1" font-family="'IBM Plex Mono', monospace">TRACK A</text>
+            <text x="91" y="95" font-size="9" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Sensing / Field Deployment</text>
+            <line x1="170" y1="84" x2="200" y2="84" stroke="#D9D4CA" stroke-width="1"/>
+            <rect x="430" y="40" width="158" height="36" rx="2" fill="#F7F4EE" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="509" y="55" font-size="8" fill="#9C5049" text-anchor="middle" letter-spacing="1" font-family="'IBM Plex Mono', monospace">TRACK B</text>
+            <text x="509" y="69" font-size="9" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Software AI Product</text>
+            <line x1="400" y1="74" x2="430" y2="58" stroke="#D9D4CA" stroke-width="1"/>
+            <rect x="430" y="100" width="158" height="36" rx="2" fill="#F7F4EE" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="509" y="115" font-size="8" fill="#9C5049" text-anchor="middle" letter-spacing="1" font-family="'IBM Plex Mono', monospace">TRACK C</text>
+            <text x="509" y="129" font-size="9" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Healthcare AI</text>
+            <line x1="400" y1="98" x2="430" y2="118" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="300" y="162" font-size="8" fill="#7A7469" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Candidate selects the track whose domain feels most natural</text>
+            <text x="300" y="175" font-size="8" fill="#7A7469" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Construct equivalence holds across all three</text>
+          </svg>
+        </div>
+
+        <p>
+          Each dimension offers three parallel scenario tracks, developed in collaboration with programme leadership. The candidate picks the domain that feels most natural. This solves a real confound: a candidate unfamiliar with healthcare AI shouldn't score lower on first-principles thinking because the scenario felt foreign.
+        </p>
+      </section>
+
+      <section id="dual-output">
+        <div class="section-label"><span class="num">04</span> DUAL-OUTPUT DESIGN</div>
+        <h2 class="section-heading">One assessment. Two downstream uses.</h2>
+        <p>
+          The same scoring engine produces two outputs: a reviewer card for the interview panel, and a candidate report delivered to every applicant on portal submission, regardless of selection outcome.
+        </p>
+
+        <div class="flow-diagram">
+          <svg viewBox="0 0 600 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+            <rect width="600" height="230" fill="#F7F4EE"/>
+            <text x="12" y="22" font-size="8" fill="#9C5049" letter-spacing="1.5" font-family="'IBM Plex Mono', monospace" font-weight="500">OUTPUT ARCHITECTURE</text>
+            <rect x="195" y="38" width="210" height="44" rx="2" fill="#9C5049"/>
+            <text x="300" y="57" font-size="9" fill="#F7F4EE" text-anchor="middle" letter-spacing="0.5" font-family="'IBM Plex Mono', monospace">TSP ASSESSMENT</text>
+            <text x="300" y="73" font-size="8" fill="#EDE9E1" text-anchor="middle" font-family="'Source Sans 3', sans-serif">28 items · 6 dimensions · scoring engine</text>
+            <line x1="230" y1="82" x2="140" y2="118" stroke="#D9D4CA" stroke-width="1"/>
+            <line x1="370" y1="82" x2="460" y2="118" stroke="#D9D4CA" stroke-width="1"/>
+            <rect x="30" y="118" width="215" height="82" rx="2" fill="#EDE9E1" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="137" y="137" font-size="8" fill="#9C5049" text-anchor="middle" letter-spacing="1" font-family="'IBM Plex Mono', monospace">REVIEWER CARD</text>
+            <text x="137" y="152" font-size="8" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Dimension scores + archetype</text>
+            <text x="137" y="165" font-size="8" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Flags + interview probes</text>
+            <text x="137" y="178" font-size="8" fill="#7A7469" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Reviewer-only</text>
+            <rect x="355" y="118" width="215" height="82" rx="2" fill="#EDE9E1" stroke="#D9D4CA" stroke-width="1"/>
+            <text x="462" y="137" font-size="8" fill="#9C5049" text-anchor="middle" letter-spacing="1" font-family="'IBM Plex Mono', monospace">CANDIDATE REPORT</text>
+            <text x="462" y="152" font-size="8" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Archetype + dimension bands</text>
+            <text x="462" y="165" font-size="8" fill="#1C1A17" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Synthesis + reflective prompts</text>
+            <text x="462" y="178" font-size="8" fill="#7A7469" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Delivered on submission</text>
+            <text x="137" y="218" font-size="7.5" fill="#7A7469" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Interview panel · Selection signal</text>
+            <text x="462" y="218" font-size="7.5" fill="#7A7469" text-anchor="middle" font-family="'Source Sans 3', sans-serif">Every applicant · No flags shown</text>
+          </svg>
+        </div>
+
+        <p>
+          The reviewer card is diagnostic: it directs interview attention toward the signal regions that need triangulation, not toward confirmation of the score. The candidate report is introspective: dimension bands are shown, but without the raw scores, flags, or selection implications visible to reviewers. The principle was that every person who completes the assessment should leave with something they can actually use.
+        </p>
+
+        <p>
+          Seven archetypes sit at the output layer, assigned through a deterministic decision tree. Each archetype carries a defined failure mode, which becomes the basis for what the programme should offer that TIR once they're in.
+        </p>
+
+        <div class="archetype-row">
+          <span class="archetype-chip">Architect</span>
+          <span class="archetype-chip">Builder</span>
+          <span class="archetype-chip">Catalyst</span>
+          <span class="archetype-chip">Visionary</span>
+          <span class="archetype-chip">Specialist</span>
+          <span class="archetype-chip">Pioneer</span>
+          <span class="archetype-chip">Explorer</span>
+        </div>
+      </section>
+
+      <section id="decisions">
+        <div class="section-label"><span class="num">05</span> KEY DECISIONS</div>
+        <h2 class="section-heading">The choices that shaped it.</h2>
+
+        <div class="tension-list">
+          <div class="tension-item">
+            <span class="t-num">01</span>
+            <div>
+              <div class="t-title">Situational judgement over trait measurement</div>
+              <p class="t-body">Stable traits don't change under programme conditions. The instrument needed to capture behaviour in specific, high-pressure situations. SJT format forces a commitment to a course of action in a realistic scenario, closer to what the programme needs to predict, and harder to perform.</p>
+            </div>
+          </div>
+          <div class="tension-item">
+            <span class="t-num">02</span>
+            <div>
+              <div class="t-title">Costs on every option</div>
+              <p class="t-body">Every choice carries a named positive attribute and an explicit cost. In translational work, every decision involves trade-offs. Candidates who can't see the cost of a "good" decision aren't ready for what the work actually demands. The format reflects that, not just tests for it.</p>
+            </div>
+          </div>
+          <div class="tension-item">
+            <span class="t-num">03</span>
+            <div>
+              <div class="t-title">Candidate report as a design requirement</div>
+              <p class="t-body">The decision to deliver a substantive, honest report to every applicant on submission was made early and upstream. It changed what the instrument had to produce: not just a reviewer signal, but something a researcher could genuinely use regardless of what came next.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tensions">
+        <div class="section-label"><span class="num">06</span> OPEN QUESTIONS</div>
+        <h2 class="section-heading">What deployment will answer.</h2>
+        <p>
+          The instrument has been through construct design, item writing, scoring calibration, archetype simulation across 2,000 synthetic profiles, and a full engineering specification. A small sample of real responses was also scored during development, which surfaced early questions about how the scoring behaves in practice. What it hasn't had yet is a full cohort.
+        </p>
+        <p>
+          The most important open question is predictive validity: whether archetype assignments and dimension patterns predict anything about how TIRs actually perform through the programme. The instrument is designed to be testable on this, but it can only be tested once there's outcome data to test against.
+        </p>
+        <p>
+          The AI-gaming concern sits alongside this. The instrument's construct depth is its main defence, but how much signal degrades under adversarial conditions is something only deployment data will show.
+        </p>
+        <div class="callout">
+          <p>The first deployment is a signal-validation exercise. The instrument isn't being used as a hard selection cutoff. The priority is whether it produces meaningful patterns worth acting on, before that weight increases.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const sections = document.querySelectorAll('.content section[id]');
+    const tocItems = document.querySelectorAll('.toc li');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.getAttribute('id');
+          tocItems.forEach(item => {
+            const link = item.querySelector('a');
+            if (link && link.getAttribute('href') === '#' + id) {
+              item.classList.add('active');
+            } else {
+              item.classList.remove('active');
+            }
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(s => observer.observe(s));
+  </script>
+
+</body>
+</html>
